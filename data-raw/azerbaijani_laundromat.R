@@ -42,32 +42,39 @@ edges <- df[ , .(payer_name, beneficiary_name, date, purpose,
            ]
 
 
-payer_nodes <- df[,  names(df)[grepl("^payer", names(df))]
-                  , with = FALSE
+payer_nodes <- df[ ,  names(df)[grepl("^payer", names(df))]
+                   , with = FALSE
                  ]
 setnames(payer_nodes, sub("^payer_?", "", names(payer_nodes)))[ , core := NULL]
 
-beneficiary_nodes <- df[,  names(df)[grepl("^beneficiary", names(df))]
-                        , with = FALSE
+beneficiary_nodes <- df[ ,  names(df)[grepl("^beneficiary", names(df))]
+                         , with = FALSE
                        ]
-setnames(beneficiary_nodes, sub("^beneficiary_?", "", names(beneficiary_nodes)))[
-  , core := NULL
+setnames(
+  beneficiary_nodes, sub("^beneficiary_?", "", names(beneficiary_nodes))
+  )[ , core := NULL
   ]
 
 nodes <- unique(
   .rbind.data.table(payer_nodes, beneficiary_nodes)[
-    , -c("bank_country", "account")
-    ][ , jurisdiction := ifelse(jurisdiction == "UNKNOWN", NA_character_, jurisdiction)
-    ]
+     , -c("bank_country", "account")
+  ][ , jurisdiction := ifelse(jurisdiction == "UNKNOWN", NA_character_, jurisdiction)
+  ][ , node_type := type
+  ][ , type := NULL
+  ]
 )
 
-edges[!payer_name %in% nodes$name,]
 
-igraph::graph_from_data_frame(edges, directed = TRUE, vertices = nodes) # confirm
 
-fwrite(nodes, "inst/data-files/azerbaijani_laundromat/nodes.csv")
-fwrite(edges, "inst/data-files/azerbaijani_laundromat/edges.csv")
+g <- igraph::graph_from_data_frame(edges, directed = TRUE, vertices = nodes)
+
+
+igraph::write_graph(g, file = "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat.graphml",
+                    format = "graphml")
+fwrite(nodes, "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat-nodes.csv")
+fwrite(edges, "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat-edges.csv")
 write_lines(readme, "inst/data-files/azerbaijani_laundromat/README")
+write_lines(readme, "inst/data-files/azerbaijani_laundromat/README.txt")
 
 sessionInfo()
 # R version 3.6.0 (2019-04-26)
