@@ -12,7 +12,9 @@ Description:
   overall picture is crystal clear.
 
   The stories in the Azerbaijani Laundromat investigation are based in part on this data.
-  OCCRP is sharing the full database here so that readers can do their own searches."
+  OCCRP is sharing the full database here so that readers can do their own searches.
+
+  Cleaning Script: https://github.com/knapply/netdata/blob/master/data-raw/azerbaijani_laundromat.R"
 
 library(readr)
 library(jsonlite)
@@ -90,3 +92,4 @@ sessionInfo()
 # [5] magrittr_1.5      pillar_1.4.1     rlang_0.3.4      curl_3.3
 # [9] rstudioapi_0.9.0  tools_3.6.0      igraph_1.2.4.1   hms_0.4.2
 # [13] compiler_3.6.0   pkgconfig_2.0.2  tibble_2.1.3
+
