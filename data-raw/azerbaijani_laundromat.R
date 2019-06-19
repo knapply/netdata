@@ -26,11 +26,11 @@ parsed <- parse_json(raw_data)
 
 col_names <- unique(unlist(lapply(parsed$data, names), use.names = FALSE))
 
-init <- lapply(parsed$data, function(x) data.table::as.data.table(x[col_names]))
+init <- lapply(parsed$data, function(x) as.data.table(x[col_names]))
 
 df <- rbindlist(init, fill = TRUE)
 
-df[  , date := as.Date(date, format = "%Y-%m-%d")
+df[  , date       := as.Date(date, format = "%Y-%m-%d")
   ][ , amount_eur := as.double(gsub("\\$|,", "", amount_eur))
   ]
 
@@ -53,11 +53,15 @@ setnames(beneficiary_nodes, sub("^beneficiary_?", "", names(beneficiary_nodes)))
   ]
 
 nodes <- unique(
-  .rbind.data.table(payer_nodes, beneficiary_nodes)[, -c("bank_country", "account")]
+  .rbind.data.table(payer_nodes, beneficiary_nodes)[
+    , -c("bank_country", "account")
+    ][ , jurisdiction := ifelse(jurisdiction == "UNKNOWN", NA_character_, jurisdiction)
+    ]
 )
 
-# confirm
-igraph::graph_from_data_frame(edges, directed = TRUE, vertices = nodes)
+edges[!payer_name %in% nodes$name,]
+
+igraph::graph_from_data_frame(edges, directed = TRUE, vertices = nodes) # confirm
 
 fwrite(nodes, "inst/data-files/azerbaijani_laundromat/nodes.csv")
 fwrite(edges, "inst/data-files/azerbaijani_laundromat/edges.csv")
