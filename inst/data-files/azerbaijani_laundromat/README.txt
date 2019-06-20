@@ -13,4 +13,5 @@ Description:
   The stories in the Azerbaijani Laundromat investigation are based in part on this data.
   OCCRP is sharing the full database here so that readers can do their own searches.
 
-  Cleaning Script: https://github.com/knapply/netdata/blob/master/data-raw/azerbaijani_laundromat.R
+Cleaning Script:
+  https://github.com/knapply/netdata/blob/master/data-raw/azerbaijani_laundromat.R

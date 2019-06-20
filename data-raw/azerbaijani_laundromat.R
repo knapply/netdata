@@ -14,7 +14,8 @@ Description:
   The stories in the Azerbaijani Laundromat investigation are based in part on this data.
   OCCRP is sharing the full database here so that readers can do their own searches.
 
-  Cleaning Script: https://github.com/knapply/netdata/blob/master/data-raw/azerbaijani_laundromat.R"
+Cleaning Script:
+  https://github.com/knapply/netdata/blob/master/data-raw/azerbaijani_laundromat.R"
 
 library(readr)
 library(jsonlite)
@@ -32,48 +33,39 @@ init <- lapply(parsed$data, function(x) as.data.table(x[col_names]))
 
 df <- rbindlist(init, fill = TRUE)
 
-df[  , date       := as.Date(date, format = "%Y-%m-%d")
-  ][ , amount_eur := as.double(gsub("\\$|,", "", amount_eur))
-  ]
+df[ , date := as.Date(date, format = "%Y-%m-%d")
+    ][ , amount_eur := as.double(gsub("\\$|,", "", amount_eur))]
 
-edges <- df[ , .(payer_name, beneficiary_name, date, purpose,
-                 amount_orig_currency, amount_orig, amount_usd, amount_eur,
-                 investigation)
-           ]
+edges <- df[ , .(payer_name, beneficiary_name, date, purpose, amount_orig_currency,
+                 amount_orig, amount_usd, amount_eur, investigation)]
 
 
 payer_nodes <- df[ ,  names(df)[grepl("^payer", names(df))]
-                   , with = FALSE
-                 ]
-setnames(payer_nodes, sub("^payer_?", "", names(payer_nodes)))[ , core := NULL]
+                   , with = FALSE]
+setnames(payer_nodes, sub("^payer_?", "", names(payer_nodes))
+         )[ , core := NULL]
 
 beneficiary_nodes <- df[ ,  names(df)[grepl("^beneficiary", names(df))]
-                         , with = FALSE
-                       ]
-setnames(
-  beneficiary_nodes, sub("^beneficiary_?", "", names(beneficiary_nodes))
-  )[ , core := NULL
-  ]
+                         , with = FALSE]
+setnames(beneficiary_nodes, sub("^beneficiary_?", "", names(beneficiary_nodes))
+  )[ , core := NULL]
 
 nodes <- unique(
-  .rbind.data.table(payer_nodes, beneficiary_nodes)[
-     , -c("bank_country", "account")
-  ][ , jurisdiction := ifelse(jurisdiction == "UNKNOWN", NA_character_, jurisdiction)
-  ][ , node_type := type
-  ][ , type := NULL
-  ]
+  .rbind.data.table(payer_nodes, beneficiary_nodes)[ , -c("bank_country", "account")
+     ][ , jurisdiction := ifelse(jurisdiction == "UNKNOWN", NA_character_, jurisdiction)
+        ][ , node_type := type
+           ][ , type := NULL]
 )
-
-
 
 g <- igraph::graph_from_data_frame(edges, directed = TRUE, vertices = nodes)
 
 
-igraph::write_graph(g, file = "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat.graphml",
-                    format = "graphml")
+igraph::write_graph(
+  g, file = "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat.graphml",
+  format = "graphml"
+)
 fwrite(nodes, "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat-nodes.csv")
 fwrite(edges, "inst/data-files/azerbaijani_laundromat/azerbaijani_laundromat-edges.csv")
-write_lines(readme, "inst/data-files/azerbaijani_laundromat/README")
 write_lines(readme, "inst/data-files/azerbaijani_laundromat/README.txt")
 
 sessionInfo()
